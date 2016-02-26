@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
+    # sources the config.sh from our directory
     TOOLS_DIR=$(dirname ${BASH_SOURCE[0]})
     source "$TOOLS_DIR/config.sh"
 fi
