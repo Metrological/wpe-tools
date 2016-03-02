@@ -15,6 +15,10 @@ WPE_BUILD = wpet_get('WPE_BUILD')
 
 REMOTE = wpet_get('REMOTE_HOST') + ':' + wpet_get('REMOTE_GDB_PORT')
 
+DEBUG_PROGRAM = wpet_get('DEBUG_ATTACH')
+if DEBUG_PROGRAM is None:
+    DEBUG_PROGRAM = wpet_get('DEBUG_PROGRAM')
+
 settings = {
     'sysroot': os.path.join(BUILDROOT_OUTPUT, 'staging'),
     'pagination': 'off',
@@ -29,7 +33,7 @@ directory = [ os.path.join(WPE_BUILD, 'Source', val)
 other_init_commands = [
     "directory %s" % ":".join(directory),
     #"handle SIGILL nostop",
-    "file %s" % os.path.join(BUILDROOT_OUTPUT, 'staging/usr/bin/WPELauncher'),
+    "file %s" % os.path.join(BUILDROOT_OUTPUT, 'staging/usr/bin/%s' % DEBUG_PROGRAM),
     "target remote %s" % REMOTE
 ]
 
