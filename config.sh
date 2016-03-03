@@ -10,6 +10,10 @@ export WPET_REMOTE_SSH_USER=root
 export WPET_REMOTE_SSH_PORT=22
 export WPET_REMOTE_GDB_PORT=2345
 
+# these mount directories need to exist!
+export WPET_BOOT_MOUNT=/media/boot
+export WPET_ROOT_MOUNT=/media/rootfs
+
 # FIXME: get that from $WPET_OUTPUT/.config
 export WPET_GCC_VERSION=4.9.3
 
