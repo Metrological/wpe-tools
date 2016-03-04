@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# FIXME check for root
+# check for root
+if [ $EUID -ne 0 ]; then
+    echo "This script needs to be run with root privilege"
+    exit 1
+fi
 
 if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
     # sources the config.sh from our directory
@@ -19,7 +23,7 @@ BOOT_DEVICE=
 ROOT_DEVICE=
 
 while true ; do
-    case "$1" in # FIXME
+    case "$1" in
         -n|--nfs) DEPLOY_METHOD=nfs ; shift ;;
         -s|--sdcard) DEPLOY_METHOD=sdcard ; shift ;;
         -b|--boot) BOOT_DEVICE=$2 ; shift 2 ;;
