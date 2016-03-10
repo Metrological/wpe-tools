@@ -197,6 +197,12 @@ class CodeBlock:
     def dumpSource(self):
         self._applyNoArgMethod("dumpSource")
 
+    def __repr__(self):
+        return "<CodeBlock 0x%x start:0x%x end:0x%x>" % (self.val,
+                self._start, self._end)
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class FrameItem:
@@ -318,8 +324,11 @@ class Frame:
         else:
             n = self.RET + 1
         for item_info in self.items_info[:n]:
-            ret += "%s:\t%s\n" % (item_info.description,
-                    self.items[item_info.id_number])
+            if item_info.id_number == self.CODEBLOCK and self.is_valid_js_frame:
+                ret += "CodeBlock:\t%s\n" % self.codeBlock
+            else:
+                ret += "%s:\t%s\n" % (item_info.description,
+                        self.items[item_info.id_number])
 
         if self.is_valid_js_frame:
             for i in xrange(self.topy(self.ARG_COUNT)):
@@ -383,5 +392,44 @@ def hmbt(args, from_tty):
     top_frame = Frame(top_frame_addr, pc=pc, inferior=inferior)
     for frame in read_frames([top_frame]):
         print frame
+
 gdb_command("hmbt", hmbt)
+
+
+class JSFrameInfoCommand(gdb.Command):
+    def __init__(self, **kwargs):
+        gdb.Command.__init__(self, "jsframeinfo", gdb.COMMAND_STACK, gdb.COMPLETE_EXPRESSION)
+        self.inferior = gdb.selected_inferior()
+
+    def read_word(self, addr):
+        try:
+            return gdb.Value(read_word(self.inferior, addr)).cast(VOIDP)
+        except Exception, e:
+            print "Got exception:", e, "when reading from:", hex(addr)
+            return 0xabadcafe
+
+    def invoke(self, arguments, from_tty):
+        args = gdb.string_to_argv(arguments)
+        if len(args) != 1:
+            print "syntax: jsframeinfo [stack_frame_address]"
+            return
+        try:
+            frame_addr = get_ptr_val(gdb.parse_and_eval(args[0]))
+        except Exception, e:
+            print "Could not get frame address for ", hex(frame_addr), "error:", e
+
+        try:
+            frame = Frame(frame_addr)
+        except Exception, e:
+            print "could not create frame at", hex(frame_addr), ":", e
+            import pdb; pdb.set_trace()
+
+        if not frame.is_valid_frame:
+            print "This frame looks invalid"
+            return
+
+        print frame.long_str()
+
+
+JSFrameInfoCommand()
 
