@@ -24,7 +24,7 @@ TARGET_PLATFORM = wpet_get('PLATFORM')
 
 def get_fp(platform):
     fps = { 'mipsel-linux': '$s8',
-            'arm-linux': '$x11' # assuming ARM "traditional", $x7 is used if thumb2 is available.
+            'arm-linux': '$r7' # ARM "traditional" would use $r11
             }
     return fps.get(platform, None)
 
