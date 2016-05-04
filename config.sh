@@ -4,8 +4,10 @@
 # output dir in buildroot
 export WPET_OUTPUT_NAME=rpi2
 export WPET_PLATFORM=arm-linux
-
 export WPET_REMOTE_HOST=192.168.0.103
+export WPET_BUILDROOT_KIND="buildroot-wpe"
+
+
 export WPET_REMOTE_SSH_USER=root
 export WPET_REMOTE_SSH_PORT=22
 export WPET_REMOTE_GDB_PORT=2345
@@ -30,7 +32,7 @@ export WPET_TFTPBOOT=/tftpboot
 #### Stuff you shouldn't need to change ####
 # if you have everything under the same directory #
 
-export WPET_BUILDROOT="$WPET_BASE/buildroot-wpe"
+export WPET_BUILDROOT="$WPET_BASE/$WPET_BUILDROOT_KIND"
 # This is where this file shoud be!
 export WPET_TOOLS="$WPET_BASE/wpe-tools"
 export WPET_OUTPUT="$WPET_BUILDROOT/$WPET_OUTPUT_NAME"
