@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# check for root
-if [ $EUID -ne 0 ]; then
-    echo "This script needs to be run with root privilege"
-    exit 1
-fi
-
 if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
     # sources the config.sh from our directory
     TOOLS_DIR=$(dirname ${BASH_SOURCE[0]})
@@ -13,7 +7,7 @@ if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
 fi
 
 # These few lines reorder $@ so that options come first.
-TEMP=`getopt -o nsr:b:h --long nfs,sdcard,root:,boot:,help -- "$@"`
+TEMP=`getopt -o nsSr:b:h --long nfs,sdcard,sunspider,ssh,root:,boot:,help -- "$@"`
 if [ $? != 0 ] ; then echo "Problem parsing options" >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
@@ -21,18 +15,29 @@ eval set -- "$TEMP"
 DEPLOY_METHOD=
 BOOT_DEVICE=
 ROOT_DEVICE=
+DEPLOY_SUNSPIDER=no
 
 while true ; do
     case "$1" in
         -n|--nfs) DEPLOY_METHOD=nfs ; shift ;;
         -s|--sdcard) DEPLOY_METHOD=sdcard ; shift ;;
+        -S|--ssh) DEPLOY_METHOD=ssh; shift ;;
+        --sunspider) DEPLOY_SUNSPIDER=yes ; shift ;;
         -b|--boot) BOOT_DEVICE=$2 ; shift 2 ;;
         -r|--root) ROOT_DEVICE=$2 ; shift 2 ;;
-        -h|--help) echo "syntax: $0 [-n|--nfs] [-s|--sdcard] [-h]" ; exit 0;;
+        -h|--help) echo "syntax: $0 [-n|--nfs] [-s|--sdcard] [--sunspider] [-h]" ; exit 0;;
         --) shift ; break ;;
         *) echo "unknown option: $1" ; exit 1 ;;
     esac
 done
+
+function root_check() {
+    if [ $EUID -ne 0 ]; then
+        echo "Need root privilege for deploy method $DEPLOY_METHOD"
+        exit 1
+    fi
+}
+
 
 function set_devices(){
     if [ x"$ROOT_DEVICE" == x"" ]; then
@@ -73,14 +78,29 @@ function check_output(){
     fi
 }
 
+function deploy_sunspider() {
+    if [ x$DEPLOY_SUNSPIDER == x"yes" ]; then
+        target="$1"
+        sunspider_path="$WPET_WPE_SOURCE/PerformanceTests/SunSpider"
+        mkdir -p "$target"
+        cp -a "$sunspider_path" "$target"
+    fi
+}
+
+echo "here"
+echo "deploy method: $DEPLOY_METHOD"
+
 if [ x$DEPLOY_METHOD == x"nfs" ]; then
+    root_check
     echo "Deploying build in $WPET_OUTPUT to $WPET_NFS and $WPET_TFTPBOOT"
 
     rm -rf "$WPET_NFS"/*
     tar xf "$WPET_OUTPUT/images/rootfs.tar" -C "$WPET_NFS"
     cp "$WPET_OUTPUT/images/vmlinux" "$WPET_TFTPBOOT"
+    deploy_sunspider "$WPET_NFS/tests"
 
 elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
+    root_check
     set_devices
     check_mount_dirs
     check_output
@@ -99,12 +119,35 @@ elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
     echo "copying root files"
     mount "$ROOT_DEVICE" "$WPET_ROOT_MOUNT"
     tar -xvpsf "$WPET_OUTPUT/images/rootfs.tar" -C "$WPET_ROOT_MOUNT"
+    deploy_sunspider "$WPET_ROOT_MOUNT/tests"
     umount "$WPET_ROOT_MOUNT"
 
     echo "syncing"
     sync
 
     echo "all done!"
+
+elif [ x$DEPLOY_METHOD == x"ssh" ]; then
+    target=$WPET_OUTPUT/target
+    deploy_bins=(jsc)
+    deploy_libs=('libWTF*' 'libJavaScriptCore*' 'libWPE*' 'libQt5WebKit*')
+    for item in ${deploy_bins[@]}; do
+        for f in $target/usr/bin/$item; do
+            if [ -f "$f" ]; then
+                echo "Copying $f with scp"
+                scp -P $WPET_REMOTE_SSH_PORT "$f" $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:/usr/bin/
+            fi
+        done
+    done
+
+    for item in ${deploy_libs[@]}; do
+        for f in $target/usr/lib/$item; do
+            if [ -f "$f" ]; then
+                echo "Copying $f with scp"
+                scp -P $WPET_REMOTE_SSH_PORT "$f" $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:/usr/lib/
+            fi
+        done
+    done
 
 else
     echo "No deploy method specified! You need to choose between nfs (-n/--nfs) and sdcard (-s/--sdcard)"
