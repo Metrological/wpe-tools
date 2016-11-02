@@ -16,7 +16,7 @@ DEPLOY=false
 while true ; do
     case "$1" in
         -d|--deploy) DEPLOY=$2 ; shift 2 ;;
-        -h|--help) echo "syntax: $0 [-d <nfs|sdcard>] [-h] [make options]" ; exit 0;;
+        -h|--help) echo "syntax: $0 [-d <nfs|sdcard|ssh>] [-h] [make options]" ; exit 0;;
         --) shift ; break ;;
         *) echo "unknown option: $1" ; exit 1 ;;
     esac
@@ -30,4 +30,6 @@ if [ x"$DEPLOY" == x"nfs" ]; then
     sudo $WPET_TOOLS/deploy.sh --nfs
 elif [ x"$DEPLOY" == x"sdcard" ]; then
     sudo $WPET_TOOLS/deploy.sh --sdcard
+elif [ x"$DEPLOY" == x"ssh" ]; then
+    $WPET_TOOLS/deploy.sh --ssh
 fi
