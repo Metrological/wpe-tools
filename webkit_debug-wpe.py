@@ -44,14 +44,19 @@ directory = [ os.path.join(WPE_BUILD, 'Source', val)
 
 other_init_commands = [
     "directory %s" % ":".join(directory),
-    #"handle SIGILL nostop",
+    "handle SIGILL nostop",
+    "handle SIGUSR1 nostop noprint",
     "handle SIGUSR2 nostop noprint",
     "file %s" % os.path.join(BUILDROOT_OUTPUT, 'staging/usr/bin/%s' % DEBUG_PROGRAM),
     "target remote %s" % REMOTE
 ]
 
 if wpet_get('DEBUG_CONTINUE_ON_ATTACH') is not None:
+    settings['interactive-mode'] = 'off'
     other_init_commands.append("continue")
+    other_init_commands.append("bt")
+    other_init_commands.append("kill")
+    other_init_commands.append("quit")
 
 
 def setup():
@@ -154,7 +159,7 @@ def read_word(inferior, address):
 # FIXME: split webkit helper stuff in separate file
 
 VOIDP = gdb.lookup_type("void").pointer()
-FUNCTIONCODEBLOCKP = gdb.lookup_type("JSC::FunctionCodeBlock").pointer()
+FUNCTIONCODEBLOCKP = VOIDP # gdb.lookup_type("JSC::FunctionCodeBlock").pointer()
 INT = gdb.lookup_type("int")
 
 def wtf_string_to_utf8(val, inferior=None):
@@ -201,6 +206,9 @@ class CodeBlock:
 
     def dumpSource(self):
         self._applyNoArgMethod("dumpSource")
+
+    def vm(self):
+        return self.val['m_vm']
 
     def __repr__(self):
         return "<CodeBlock 0x%x start:0x%x end:0x%x>" % (self.val,
@@ -249,7 +257,7 @@ class Frame:
     FIRST_ARG_OFFSET = items_info[LAST].offset + 8
 
     #get_name_str = "((JSC::JSFunction *)0x%x)->name((JSC::ExecState*)0x%x).m_impl.m_ptr->m_data8"
-    get_name_str = "JSC::getCalculatedDisplayName((JSC::CallFrame*)0x%x, (JSC::JSObject*)0x%x)"
+    get_name_str = "JSC::getCalculatedDisplayName(*((JSC::VM*)0x%x), (JSC::JSObject*)0x%x)"
 
     def __init__(self, addr, pc=None, inferior=None):
         self.addr = addr
@@ -358,7 +366,8 @@ class Frame:
 
         if self.is_js_frame():
             js_function_addr = self.topy(self.CALLEE)
-            to_call = self.get_name_str % (self.addr, js_function_addr)
+            vm = self.codeBlock.vm()
+            to_call = self.get_name_str % (vm, js_function_addr)
             #print "about to call " + to_call
             val = gdb.parse_and_eval(to_call)
             return "js: "+wtf_string_to_utf8(val)
