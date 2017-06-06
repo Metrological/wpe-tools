@@ -36,11 +36,16 @@ export WPET_BUILDROOT="$WPET_BASE/$WPET_BUILDROOT_KIND"
 # This is where this file shoud be!
 export WPET_TOOLS="$WPET_BASE/wpe-tools"
 export WPET_OUTPUT="$WPET_BUILDROOT/$WPET_OUTPUT_NAME"
-if [ $WPET_PORT  == "wpe" ]; then
+if [ x$WPET_PORT  == x"wpe" ]; then
   export WPET_WPE_SOURCE="$WPET_BASE/WebKitForWayland"
   # This expects that you have a local.mk to use a custom location (e.g. local
   # branch) for wpe.
-  export WPET_WPE_BUILD="$WPET_OUTPUT/build/wpe-custom"
+  export WPET_WPE_BUILD="$WPET_OUTPUT/build/wpewebkit-custom"
+elif [ x$WPET_PORT == x"jsconly" ]; then
+  export WPET_WPE_SOURCE="$WPET_BASE/webkit"
+  # This expects that you have a local.mk to use a custom location (e.g. local
+  # branch) for wpe.
+  export WPET_WPE_BUILD="$WPET_OUTPUT/build/jsconly-custom"
 else
   export WPET_WPE_SOURCE="$WPET_BASE/qtwebkit"
   # This expects that you have a local.mk to use a custom location (e.g. local
