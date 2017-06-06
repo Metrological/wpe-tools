@@ -111,14 +111,17 @@ elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
 
     echo "copying boot files"
     mount "$BOOT_DEVICE" "$WPET_BOOT_MOUNT"
-    cp "$WPET_OUTPUT/images/rpi-firmware/"* "$WPET_BOOT_MOUNT"
+    cp -r "$WPET_OUTPUT/images/rpi-firmware/"* "$WPET_BOOT_MOUNT"
+    cp "$WPET_OUTPUT"/images/*.dtb "$WPET_BOOT_MOUNT"
     cp "$WPET_OUTPUT/images/zImage" "$WPET_BOOT_MOUNT"
+    sync
     umount "$WPET_BOOT_MOUNT"
 
     echo "copying root files"
     mount "$ROOT_DEVICE" "$WPET_ROOT_MOUNT"
     tar -xvpsf "$WPET_OUTPUT/images/rootfs.tar" -C "$WPET_ROOT_MOUNT"
     deploy_sunspider "$WPET_ROOT_MOUNT/tests"
+    sync
     umount "$WPET_ROOT_MOUNT"
 
     echo "syncing"
