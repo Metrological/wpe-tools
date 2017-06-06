@@ -7,7 +7,7 @@ if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
 fi
 
 # These few lines reorder $@ so that options come first.
-TEMP=`getopt -o ja:tch --long jsc,attach:,tui,continue,help -- "$@"`
+TEMP=`getopt -o ja:tcl:h --long jsc,attach:,tui,continue,launcher:,help -- "$@"`
 if [ $? != 0 ] ; then echo "Problem parsing options" >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
@@ -22,7 +22,8 @@ while true ; do
         -j|--jsc) WPET_DEBUG_PROGRAM=jsc; WPET_DEBUG_ATTACH=; shift;;
         -a|--attach) WPET_DEBUG_ATTACH=$2; shift 2;;
         -t|--tui) GDB_OPTS+=" --tui"; shift;;
-        -c|--continue) export WPET_DEBUG_CONTINUE_ON_ATTACH=1; shift;;
+        -c|--continue) export WPET_DEBUG_CONTINUE_ON_ATTACH=1; GDB_OPTS+=" -q"; shift;;
+        -l|--launcher) WPET_DEBUG_PROGRAM=$2; WPET_DEBUG_ATTACH=; shift 2;;
         -h|--help) echo "syntax: $0 [-j|--jsc] [-a|--attach <prog_name>] [-h|--help]" ; exit 0;; # FIXME
         --) shift ; break ;;
     esac
