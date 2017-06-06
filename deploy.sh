@@ -87,7 +87,6 @@ function deploy_sunspider() {
     fi
 }
 
-echo "here"
 echo "deploy method: $DEPLOY_METHOD"
 
 if [ x$DEPLOY_METHOD == x"nfs" ]; then
