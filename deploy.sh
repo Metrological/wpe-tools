@@ -25,7 +25,7 @@ while true ; do
         --sunspider) DEPLOY_SUNSPIDER=yes ; shift ;;
         -b|--boot) BOOT_DEVICE=$2 ; shift 2 ;;
         -r|--root) ROOT_DEVICE=$2 ; shift 2 ;;
-        -h|--help) echo "syntax: $0 [-n|--nfs] [-s|--sdcard] [--sunspider] [-h]" ; exit 0;;
+        -h|--help) echo "syntax: $0 [-n|--nfs] [-s|--sdcard] [-S|--ssh] [--sunspider] [-h]" ; exit 0;;
         --) shift ; break ;;
         *) echo "unknown option: $1" ; exit 1 ;;
     esac
