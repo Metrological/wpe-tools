@@ -23,7 +23,9 @@ while true ; do
 done
 
 pushd "$WPET_BUILDROOT"
+set -o pipefail
 make O="$WPET_OUTPUT_NAME" $@ all |& tee -a "$WPET_OUTPUT_NAME.build.log" || exit
+set +o pipefail
 popd
 
 if [ x"$DEPLOY" == x"nfs" ]; then
