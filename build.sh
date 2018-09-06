@@ -6,6 +6,8 @@ if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
     source "$TOOLS_DIR/config.sh"
 fi
 
+export LANG=C
+
 # These few lines reorder $@ so that options come first.
 TEMP=`getopt -o d:h --long deploy:,help -- "$@"`
 if [ $? != 0 ] ; then echo "Problem parsing options" >&2 ; exit 1 ; fi
@@ -24,7 +26,8 @@ done
 
 pushd "$WPET_BUILDROOT"
 set -o pipefail
-make O="$WPET_OUTPUT_NAME" $@ all |& tee -a "$WPET_OUTPUT_NAME.build.log" || exit
+rm -f "$WPET_BASE/last.build.log"
+make O="$WPET_OUTPUT_NAME" $@ all |& tee "$WPET_BASE/last.build.log" -a "$WPET_OUTPUT_NAME.build.log" || exit
 set +o pipefail
 popd
 
