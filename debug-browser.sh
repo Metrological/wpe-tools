@@ -14,7 +14,7 @@ eval set -- "$TEMP"
 WPET_DEBUG_PROGRAM=WPELauncher
 WPET_DEBUG_ATTACH=WPEWebProcess
 
-GDB_OPTS="--command=webkit_debug-$WPET_PORT.py"
+GDB_OPTS="-q --command=webkit_debug-$WPET_PORT.py"
 
 DEPLOY=false
 while true ; do
@@ -22,7 +22,7 @@ while true ; do
         -j|--jsc) WPET_DEBUG_PROGRAM=jsc; WPET_DEBUG_ATTACH=; shift;;
         -a|--attach) WPET_DEBUG_ATTACH=$2; shift 2;;
         -t|--tui) GDB_OPTS+=" --tui"; shift;;
-        -c|--continue) export WPET_DEBUG_CONTINUE_ON_ATTACH=1; GDB_OPTS+=" -q"; shift;;
+        -c|--continue) export WPET_DEBUG_CONTINUE_ON_ATTACH=1; shift;;
         -l|--launcher) WPET_DEBUG_PROGRAM=$2; WPET_DEBUG_ATTACH=; shift 2;;
         -h|--help) echo "syntax: $0 [-j|--jsc] [-a|--attach <prog_name>] [-h|--help]" ; exit 0;; # FIXME
         --) shift ; break ;;
@@ -35,15 +35,20 @@ export WPET_DEBUG_PROGRAM_PATH=/usr/bin/$WPET_DEBUG_PROGRAM
 echo ">>> starting program on remote host"
 
 if [ x"$WPET_DEBUG_ATTACH" != x"" ]; then
-    ssh -p $WPET_REMOTE_SSH_PORT "$WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST" "run_wpe(){  $WPET_DEBUG_PROGRAM_PATH $@ "' & sleep 2; gdbserver --attach 0.0.0.0:2345 `pidof '$WPET_DEBUG_ATTACH'` ; }; run_wpe' > run-wpe.log 2>&1 &
+    ssh -p $WPET_REMOTE_SSH_PORT "$WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST" "run_wpe(){ $WPET_DEBUG_PROGRAM_PATH $@ "' & sleep 5; LD_BIND_NOW=1 gdbserver --attach 0.0.0.0:2345 `pidof '$WPET_DEBUG_ATTACH'` ; }; run_wpe' > run-wpe.log 2>&1 &
 
-    echo ">>> waiting 2 seconds"
-    sleep 2
 else
     ssh -p $WPET_REMOTE_SSH_PORT "$WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST" "run_wpe(){ gdbserver 0.0.0.0:2345 $WPET_DEBUG_PROGRAM_PATH $@ ; }; run_wpe" > run-wpe.log 2>&1 &
 
 
 fi
+
+echo ">>> waiting for gdbserver..."
+tail -f run-wpe.log | while read LOGLINE
+do
+    [[ "${LOGLINE}" == *"Listening on port"* ]] && pkill -P $$ tail
+done
+
 
 echo ">>> starting gdb"
 PYTHONPATH=$PYTHONPATH:$WPET_OUTPUT/host/usr/share/gcc-$WPET_GCC_VERSION/python/ $WPET_OUTPUT/host/usr/bin/$WPET_PLATFORM-gdb $GDB_OPTS 
