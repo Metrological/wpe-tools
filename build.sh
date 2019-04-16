@@ -27,7 +27,8 @@ done
 pushd "$WPET_BUILDROOT"
 set -o pipefail
 rm -f "$WPET_BASE/last.build.log"
-make O="$WPET_OUTPUT_NAME" $@ all |& tee "$WPET_BASE/last.build.log" -a "$WPET_OUTPUT_NAME.build.log" || exit
+echo make O="$WPET_OUTPUT_NAME" "$MAKE_OPTIONS" $@ all
+make O="$WPET_OUTPUT_NAME" "$MAKE_OPTIONS" $@ all |& tee "$WPET_BASE/last.build.log" -a "$WPET_OUTPUT_NAME.build.log" || exit
 set +o pipefail
 popd
 
