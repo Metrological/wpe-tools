@@ -11,6 +11,8 @@ export WPET_BUILDROOT_KIND="buildroot-wpe"
 export WPET_REMOTE_SSH_USER=root
 export WPET_REMOTE_SSH_PORT=22
 export WPET_REMOTE_GDB_PORT=2345
+export WPET_ARCHITECTURE=${WPET_PLATFORM%%-*}
+export WPET_QEMU=qemu-${WPET_ARCHITECTURE}-static
 
 # these mount directories need to exist!
 export WPET_BOOT_MOUNT=/media/boot
