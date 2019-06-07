@@ -16,9 +16,6 @@ export WPET_REMOTE_GDB_PORT=2345
 export WPET_BOOT_MOUNT=/media/boot
 export WPET_ROOT_MOUNT=/media/rootfs
 
-# FIXME: get that from $WPET_OUTPUT/.config
-export WPET_GCC_VERSION=4.9.3
-
 
 #### Options to set once ####
 # where you have everything checked out
@@ -36,6 +33,8 @@ export WPET_BUILDROOT="$WPET_BASE/$WPET_BUILDROOT_KIND"
 # This is where this file shoud be!
 export WPET_TOOLS="$WPET_BASE/wpe-tools"
 export WPET_OUTPUT="$WPET_BUILDROOT/$WPET_OUTPUT_NAME"
+export WPET_GCC_VERSION=$(awk -F= '/BR2_GCC_VERSION=/ { gsub(/"/, "", $2); print $2 }' ${WPET_OUTPUT}/.config)
+
 if [ x$WPET_PORT  == x"wpe" ]; then
   export WPET_WPE_SOURCE="$WPET_BASE/WebKitForWayland"
   # This expects that you have a local.mk to use a custom location (e.g. local
