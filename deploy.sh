@@ -131,7 +131,7 @@ elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
 
 elif [ x$DEPLOY_METHOD == x"ssh" ]; then
     target=$WPET_OUTPUT/target
-    deploy_bins=(jsc)
+    deploy_bins=(jsc testmasm testapi testdfg testair testb3)
     deploy_libs=('libWTF*' 'libJavaScriptCore*' 'libWPE*' 'libQt5WebKit*')
     for item in ${deploy_bins[@]}; do
         for f in $target/usr/bin/$item; do
