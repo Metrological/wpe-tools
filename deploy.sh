@@ -71,6 +71,15 @@ function check_mount_dirs(){
     fi
 }
 
+function umount_if_needed(){
+    for dev in "$BOOT_DEVICE" "$ROOT_DEVICE"; do
+        if findmnt -S "$dev" ; then
+            echo "${dev} is mounted, umounting..."
+            umount "${dev}"
+        fi
+    done
+}
+
 function check_output(){
     if [ ! -d "$WPET_OUTPUT/images" ]; then
         echo "Cannot find $WPET_OUTPUT/images"
@@ -102,6 +111,7 @@ elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
     root_check
     set_devices
     check_mount_dirs
+    umount_if_needed
     check_output
 
     echo "formatting boot partition $BOOT_DEVICE"
