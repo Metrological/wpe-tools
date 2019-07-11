@@ -143,23 +143,20 @@ elif [ x$DEPLOY_METHOD == x"ssh" ]; then
     target=$WPET_OUTPUT/target
     deploy_bins=(jsc testmasm testapi testdfg testair testb3)
     deploy_libs=('libWTF*' 'libJavaScriptCore*' 'libWPE*' 'libQt5WebKit*')
-    for item in ${deploy_bins[@]}; do
-        for f in $target/usr/bin/$item; do
-            if [ -f "$f" ]; then
-                echo "Copying $f with scp"
-                scp -P $WPET_REMOTE_SSH_PORT "$f" $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:/usr/bin/
-            fi
-        done
-    done
-
-    for item in ${deploy_libs[@]}; do
-        for f in $target/usr/lib/$item; do
-            if [ -f "$f" ]; then
-                echo "Copying $f with scp"
-                scp -P $WPET_REMOTE_SSH_PORT "$f" $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:/usr/lib/
-            fi
-        done
-    done
+    archive=$(mktemp -p "$PWD" deploy-XXXXX.tar.gz)
+    pushd "$target" > /dev/null
+    for x in ${deploy_libs[*]/#/usr/lib/} ${deploy_bins[*]/#/usr/bin/}; do
+        test -e "$x" && echo "$x"
+    done | xargs tar czf "$archive"
+    remote_archive=$(ssh -p $WPET_REMOTE_SSH_PORT $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST mktemp --tmpdir deploy-XXXXX.tar.gz)
+    echo "copying $archive to remote as $remote_archive"
+    scp -P $WPET_REMOTE_SSH_PORT "$archive" "$WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:$remote_archive"
+    echo "untarring archive on remote target"
+    ssh -p $WPET_REMOTE_SSH_PORT $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST tar xzf "$remote_archive" -C /
+    ssh -p $WPET_REMOTE_SSH_PORT $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST rm -f "$remote_archive"
+    popd > /dev/null
+    rm "$archive"
+    echo "all done!"
 
 else
     echo "No deploy method specified! You need to choose between nfs (-n/--nfs) and sdcard (-s/--sdcard)"
