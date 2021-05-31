@@ -1,11 +1,113 @@
 #!/bin/bash
 
 #### Options you are likely to change often ####
-# output dir in buildroot
-export WPET_OUTPUT_NAME=rpi2
+
+#export WPET_OUTPUT_NAME=output.ci20
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=10.42.0.15
+#export WPET_BUILDROOT_KIND="buildroot-jsc"
+#export WPET_PORT="jsconly"
+
+#export WPET_OUTPUT_NAME=ci20-buildbot
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=10.42.0.15
+#export WPET_BUILDROOT_KIND="buildroot-jsc"
+#export WPET_PORT="jsconly"
+
+#export WPET_OUTPUT_NAME=rpi2-buildbot
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=10.42.0.146
+#export WPET_BUILDROOT_KIND="buildroot-jsc"
+#export WPET_PORT="jsconly"
+
+export WPET_OUTPUT_NAME=rpi3-buildbot
 export WPET_PLATFORM=arm-linux
-export WPET_REMOTE_HOST=192.168.0.103
-export WPET_BUILDROOT_KIND="buildroot-wpe"
+export WPET_REMOTE_HOST=10.42.0.16
+export WPET_BUILDROOT_KIND="buildroot-jsc"
+export WPET_PORT="jsconly"
+export WPET_RPI_SERIAL=d34398fb
+
+#export WPET_OUTPUT_NAME=rpi3-wpe
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=10.42.0.16
+#export WPET_BUILDROOT_KIND="buildroot-jsc"
+#export WPET_PORT="wpe"
+#export WPET_RPI_SERIAL=d34398fb
+
+#export WPET_OUTPUT_NAME=rpi3
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=10.42.0.16
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+#export WPET_RPI_SERIAL=d34398fb
+
+#export WPET_OUTPUT_NAME=rpi2
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=10.42.0.146
+#export WPET_BUILDROOT_KIND="buildroot-jsc"
+#export WPET_PORT="jsconly"
+
+#export WPET_OUTPUT_NAME=bcm7429
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=10.42.0.221
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+#export WPET_OUTPUT_NAME=output.dawn.gcc5
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=10.42.0.198
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+#export WPET_OUTPUT_NAME=rpi2-softfp
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=192.168.0.11
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+#export WPET_OUTPUT_NAME=output.dawn.hardfp
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+
+#export WPET_OUTPUT_NAME=output.dawn.softrender
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+
+#export WPET_OUTPUT_NAME=output.dawn.hardfp.unwind
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+#
+#export WPET_OUTPUT_NAME=output.rpi1
+#export WPET_PLATFORM=arm-linux
+#export WPET_REMOTE_HOST=192.168.0.102
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
+
+#export WPET_OUTPUT_NAME=output.dawn
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot"
+#export WPET_PORT="qtwebkit"
+
+#export WPET_OUTPUT_NAME=output
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot"
+#export WPET_PORT="qtwebkit"
+
+#export WPET_OUTPUT_NAME=output.dawn.gcc4.8
+#export WPET_PLATFORM=mipsel-linux
+#export WPET_REMOTE_HOST=192.168.0.7
+#export WPET_BUILDROOT_KIND="buildroot-wpe"
+#export WPET_PORT="wpe"
 
 
 export WPET_REMOTE_SSH_USER=root
