@@ -110,6 +110,7 @@ export WPET_RPI_SERIAL=d34398fb
 #export WPET_PORT="wpe"
 
 
+export WPET_WPE_SOURCE="${HOME}/dev/WebKit"
 export WPET_REMOTE_SSH_USER=root
 export WPET_REMOTE_SSH_PORT=22
 export WPET_REMOTE_GDB_PORT=2345
@@ -140,17 +141,14 @@ export WPET_OUTPUT="$WPET_BUILDROOT/$WPET_OUTPUT_NAME"
 export WPET_GCC_VERSION=$(awk -F= '/BR2_GCC_VERSION=/ { gsub(/"/, "", $2); print $2 }' ${WPET_OUTPUT}/.config)
 
 if [ x$WPET_PORT  == x"wpe" ]; then
-  export WPET_WPE_SOURCE="$WPET_BASE/WebKitForWayland"
   # This expects that you have a local.mk to use a custom location (e.g. local
   # branch) for wpe.
   export WPET_WPE_BUILD="$WPET_OUTPUT/build/wpewebkit-custom"
 elif [ x$WPET_PORT == x"jsconly" ]; then
-  export WPET_WPE_SOURCE="$WPET_BASE/webkit"
   # This expects that you have a local.mk to use a custom location (e.g. local
   # branch) for wpe.
   export WPET_WPE_BUILD="$WPET_OUTPUT/build/jsconly-custom"
 else
-  export WPET_WPE_SOURCE="$WPET_BASE/qtwebkit"
   # This expects that you have a local.mk to use a custom location (e.g. local
   # branch) for wpe.
   export WPET_WPE_BUILD="$WPET_OUTPUT/build/qt5webkit-custom"
