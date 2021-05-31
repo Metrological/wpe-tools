@@ -91,18 +91,6 @@ export WPET_RPI_SERIAL=d34398fb
 #export WPET_BUILDROOT_KIND="buildroot-wpe"
 #export WPET_PORT="wpe"
 
-#export WPET_OUTPUT_NAME=output.dawn
-#export WPET_PLATFORM=mipsel-linux
-#export WPET_REMOTE_HOST=192.168.0.7
-#export WPET_BUILDROOT_KIND="buildroot"
-#export WPET_PORT="qtwebkit"
-
-#export WPET_OUTPUT_NAME=output
-#export WPET_PLATFORM=mipsel-linux
-#export WPET_REMOTE_HOST=192.168.0.7
-#export WPET_BUILDROOT_KIND="buildroot"
-#export WPET_PORT="qtwebkit"
-
 #export WPET_OUTPUT_NAME=output.dawn.gcc4.8
 #export WPET_PLATFORM=mipsel-linux
 #export WPET_REMOTE_HOST=192.168.0.7
@@ -148,10 +136,6 @@ elif [ x$WPET_PORT == x"jsconly" ]; then
   # This expects that you have a local.mk to use a custom location (e.g. local
   # branch) for wpe.
   export WPET_WPE_BUILD="$WPET_OUTPUT/build/jsconly-custom"
-else
-  # This expects that you have a local.mk to use a custom location (e.g. local
-  # branch) for wpe.
-  export WPET_WPE_BUILD="$WPET_OUTPUT/build/qt5webkit-custom"
 fi
 
 
