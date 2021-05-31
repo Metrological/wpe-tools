@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ $EUID -eq 0 ]; then
+    echo "It's a *bad* idea to build as root! Not allowing it."
+    exit 1
+fi
+
+
 if [ x"$WPET_CONFIG_PARSED" != x"true" ]; then
     # sources the config.sh from our directory
     TOOLS_DIR=$(dirname ${BASH_SOURCE[0]})
