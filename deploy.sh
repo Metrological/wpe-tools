@@ -102,9 +102,20 @@ if [ x$DEPLOY_METHOD == x"nfs" ]; then
     root_check
     echo "Deploying build in $WPET_OUTPUT to $WPET_NFS and $WPET_TFTPBOOT"
 
+    mkdir -p "$WPET_NFS"
     rm -rf "$WPET_NFS"/*
     tar xf "$WPET_OUTPUT/images/rootfs.tar" -C "$WPET_NFS"
-    cp "$WPET_OUTPUT/images/vmlinux" "$WPET_TFTPBOOT"
+    if [ -n "$WPET_RPI_SERIAL" ]; then
+      cp "$WPET_OUTPUT/images/rpi-firmware/bootcode.bin" "${WPET_TFTPBOOT}/"
+      rm -rf "${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}"
+      mkdir -p "${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}"
+      cp -r "$WPET_OUTPUT/images/rpi-firmware/"* "${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}/"
+      cp "$WPET_OUTPUT"/images/*.dtb "${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}/"
+      cp "$WPET_OUTPUT/images/zImage" "${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}/"
+      echo "vt.global_cursor_default=0 root=/dev/nfs nfsroot=10.42.0.1:${WPET_NFS},vers=3 rw ip=dhcp rootwait console=tty1 console=ttyS0,115200" > ${WPET_TFTPBOOT}/${WPET_RPI_SERIAL}/cmdline.txt
+    else
+      cp "$WPET_OUTPUT/images/zImage" "$WPET_TFTPBOOT/zImage.$WPET_OUTPUT_NAME"
+    fi
     deploy_sunspider "$WPET_NFS/tests"
 
 elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
@@ -131,23 +142,27 @@ elif [ x$DEPLOY_METHOD == x"sdcard" ]; then
     mount "$ROOT_DEVICE" "$WPET_ROOT_MOUNT"
     tar -xvpsf "$WPET_OUTPUT/images/rootfs.tar" -C "$WPET_ROOT_MOUNT"
     deploy_sunspider "$WPET_ROOT_MOUNT/tests"
+    echo "syncing..."
     sync
     umount "$WPET_ROOT_MOUNT"
 
-    echo "syncing"
+    echo "syncing again..."
     sync
 
-    echo "all done!"
+    echo "All done! You can take the sdcard and insert it on the device."
 
 elif [ x$DEPLOY_METHOD == x"ssh" ]; then
+    $TOOLS_DIR/set_date.sh >/dev/null &
     target=$WPET_OUTPUT/target
-    deploy_bins=(jsc testmasm testapi testdfg testair testb3)
-    deploy_libs=('libWTF*' 'libJavaScriptCore*' 'libWPE*' 'libQt5WebKit*')
+    deploy_bins=(jsc testmasm testapi testdfg testair testb3 WPELauncher WPENetworkProcess WPEStorageProcess WPEWebProcess)
+    deploy_libs=('libWTF*' 'libJavaScriptCore*' 'libWPE*' 'wpeframework/plugins/libWPEFrameworkWebKitBrowser.so')
     archive=$(mktemp -p "$PWD" deploy-XXXXX.tar.gz)
     pushd "$target" > /dev/null
     for x in ${deploy_libs[*]/#/usr/lib/} ${deploy_bins[*]/#/usr/bin/}; do
         test -e "$x" && echo "$x"
     done | xargs tar czf "$archive"
+    echo "List of files to be sent:"
+    tar tf "$archive"
     remote_archive=$(ssh -p $WPET_REMOTE_SSH_PORT $WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST mktemp --tmpdir deploy-XXXXX.tar.gz)
     echo "copying $archive to remote as $remote_archive"
     scp -P $WPET_REMOTE_SSH_PORT "$archive" "$WPET_REMOTE_SSH_USER@$WPET_REMOTE_HOST:$remote_archive"
