@@ -128,7 +128,7 @@ export WPET_BASE=/home/guijemont/dev/metrological
 
 # when using NFS + TFTPBOOT for your device, this is where stuff should be
 # deployed:
-export WPET_NFS=/srv/dawn
+export WPET_NFS=/srv/$WPET_OUTPUT_NAME
 export WPET_TFTPBOOT=/tftpboot
 
 #### Stuff you shouldn't need to change ####
