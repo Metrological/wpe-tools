@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import gdb
 import os
+import sys
 
 def wpet_get(option):
     return os.environ.get('WPET_' + option, None)
@@ -9,6 +10,10 @@ have_wpet_config = bool(wpet_get('CONFIG_PARSED'))
 if not have_wpet_config:
     raise RuntimeError("config.sh not sourced")
 
+
+WPE_SOURCE = wpet_get('WPE_SOURCE')
+sys.path.insert(0, os.path.join(WPE_SOURCE, 'Tools/gdb'));
+import webkit
 
 BUILDROOT_OUTPUT = wpet_get('OUTPUT')
 WPE_BUILD = wpet_get('WPE_BUILD')
@@ -33,29 +38,32 @@ frame_pointer = get_fp(TARGET_PLATFORM)
 
 settings = {
     'sysroot': os.path.join(BUILDROOT_OUTPUT, 'staging'),
+    'solib-search-path': ".:" + ":".join([os.path.join(WPE_BUILD, "WebKitBuild/%s/lib" % config) for config in ('Debug', 'Release')]),
     'pagination': 'off',
     'print pretty': 'on',
     'print object': 'on'
+    #'demangle-style': 'none'
 }
 
 directory = [ os.path.join(WPE_BUILD, 'Source', val)
-            for val in ['JavaScriptCore', 'WTF', 'WebCore',  'WebKit2'] ]
+            for val in ['JavaScriptCore', 'JavaScriptCore/assembler', 'WTF', 'WebCore', 'WebKit'] ]
 
 
 other_init_commands = [
     "directory %s" % ":".join(directory),
-    "handle SIGILL nostop",
+    #"handle SIGILL nostop",
     "handle SIGUSR1 nostop noprint",
     "handle SIGUSR2 nostop noprint",
-    "file %s" % os.path.join(BUILDROOT_OUTPUT, 'staging/usr/bin/%s' % DEBUG_PROGRAM),
+    #"handle SIGTERM noprint",
+    #"file %s" % os.path.join(BUILDROOT_OUTPUT, 'staging/%s' % DEBUG_PROGRAM),
     "target remote %s" % REMOTE
 ]
 
 if wpet_get('DEBUG_CONTINUE_ON_ATTACH') is not None:
     settings['interactive-mode'] = 'off'
     other_init_commands.append("continue")
-    other_init_commands.append("bt")
-    other_init_commands.append("kill")
+    #other_init_commands.append("bt")
+    #other_init_commands.append("kill")
     other_init_commands.append("quit")
 
 
@@ -64,9 +72,10 @@ def setup():
         gdb.execute("set %s %s" % (key, val))
 
     for command in other_init_commands:
+        print "executing command: ", command
         gdb.execute(command)
+        print "done"
 
-setup()
 
 
 
@@ -430,7 +439,7 @@ class JSFrameInfoCommand(gdb.Command):
         try:
             frame_addr = get_ptr_val(gdb.parse_and_eval(args[0]))
         except Exception, e:
-            print "Could not get frame address for ", hex(frame_addr), "error:", e
+            print "Could not get frame address for ", args[0], "error:", e
 
         try:
             frame = Frame(frame_addr)
@@ -440,12 +449,43 @@ class JSFrameInfoCommand(gdb.Command):
 
         if not frame.is_valid_frame:
             print "This frame looks invalid"
-            return
+            #return
 
         print frame.long_str()
 
 
 JSFrameInfoCommand()
+
+# Matches JSC::CodeType in bytecode/CodeType.h
+GLOBAL_CODE = 0
+EVAL_CODE = 1
+FUNCTION_CODE = 2
+MODULE_CODE = 3
+
+def get_name_from_codeBlock(codeBlock):
+	_cb = get_ptr_val(codeBlock)
+	if _cb["m_codeType"] == FUNCTION_CODE:
+		pass
+	
+
+def dprintf(args, from_tty):
+    #print "pydprintf args:", args
+    cargs = map(str.strip, " ".join(args).split(','))
+    #print "pydprintf cargs:", cargs
+    address, funcName, sformat = cargs[0:3]
+    formatArgs = cargs[3:]
+    #print "address:", address
+    #print "funcName:", funcName
+    #print "sformat:", sformat
+    if funcName.startswith('$'):
+        funcName = gdb.parse_and_eval(funcName).string()
+    newFormat = "%s %s" % (funcName, sformat)
+    command = "dprintf %s, \"%s\", %s" % (address, newFormat, ", ".join(formatArgs))
+    print "pydprintf, running command:", command
+    gdb.execute(command)
+
+
+gdb_command("pydprintf", dprintf)
 
 
 
@@ -465,3 +505,43 @@ JSFrameInfoCommand()
 #gdb_break("Executable.h:331")
 #gdb_break("DFGSpeculativeJIT32_64.cpp:4956")
 #gdb_break("DFGSpeculativeJIT32_64.cpp:4896")
+#gdb_break("DFGSpeculativeJIT.cpp:7285")
+#gdb_break("SamplingProfiler.cpp:335")
+# gdb_break("JSC::SamplingProfiler::timerLoop")
+#gdb_break("JSC::MIPSAssembler::mtc1")
+#gdb_break("MIPSAssembler.h:552")
+#gdb_break("JSC::MIPSAssembler::truncwd")
+#gdb_break("JSC::Profiler::Database::addDatabaseToAtExit")
+#gdb_break("WebCore::Element::setAttributeInternal")
+#gdb_break("WebKit::WebPage::keyEvent")
+#gdb_break("VM.cpp:349")
+#gdb_break("SlowPathCall.h:45")
+#gdb_break("JSC::JITDisassembler::dumpHeader")
+#gdb_break("JSC::JITDisassembler::dump")
+#gdb_break("JSC::DFG::Disassembler::dumpHeader")
+#gdb_break("JSC::DFG::Disassembler::dump")
+#gdb_break("llint_entry",
+#        stop_cb=lambda self: gdb_break("* (llint_entry + 40568"))
+
+# gdb_break("JSC::ARMv7Assembler::LinkRecord::LinkRecord")
+#gdb_break("bmalloc::Scavenger::scavenge")
+#gdb_break("bmalloc::Scavenger::partialScavenge")
+
+def dump_stack(x):
+	gdb.execute("x/64a $s8")
+
+#gdb_break("ArgList.h:69", stop_cb=dump_stack)
+#gdb_break("ArgList.h:69")
+#gdb_break("ArgList.h:89", stop_cb=dump_stack)
+
+
+setup()
+
+def on_inferior_exit(event):
+    if hasattr(event, 'exit_code') and event.exit_code == 0:
+        gdb.execute("quit 0")
+#gdb.events.exited.connect(on_inferior_exit)
+
+gdb.execute("source %s" % os.path.join(wpet_get('TOOLS'), 'webkit_debug.gdb'))
+
+
